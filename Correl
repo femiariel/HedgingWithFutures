@@ -1,0 +1,25 @@
+import pandas as pd
+import numpy as np
+
+# ---- Charger les données ----
+# Suppose que tu as un DataFrame df avec colonnes ['Date', 'Spot', 'Futures']
+# La colonne Date doit être au format datetime
+df['Date'] = pd.to_datetime(df['Date'])
+df = df.set_index('Date')
+
+# ---- Calcul des rendements log ----
+df['r_spot'] = np.log(df['Spot'] / df['Spot'].shift(1))
+df['r_fut']  = np.log(df['Futures'] / df['Futures'].shift(1))
+
+# ---- Définir les sous-périodes ----
+periods = {
+    "pre_crisis": ("2003-01-01", "2005-07-31"),
+    "crisis": ("2005-08-01", "2005-12-31"),
+    "post_crisis": ("2006-01-01", "2007-12-31"),
+}
+
+# ---- Calcul corrélation par période ----
+for name, (start, end) in periods.items():
+    sub = df.loc[start:end]
+    corr = sub['r_spot'].corr(sub['r_fut'])
+    print(f"{name}: corrélation = {corr:.3f}")
